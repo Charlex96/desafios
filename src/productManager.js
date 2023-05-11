@@ -1,201 +1,115 @@
 // const fs = require('fs');
 import fs from 'fs';
 
-// const { stringify } = require('querystring');
-
-
-class ProductManager{
-    constructor(){
-        this.path = './src/productos.json';
-        // this.products = [];
-        this.id = 1;
-
-        // const productsString = fs.readFileSync(this.path, 'utf-8');
-        // const products = JSON.parse(productsString);
-        // this.products = products;
+class ProductManager {
+    constructor(path) {
+        this.path = path;
     }
 
-    async getProducts(){
+    async getProducts() {
+        return await this.read(this.file);
+    }
+
+    async getProductById(id) {
+        let allProductsArray = await this.read(this.file);
+        const product = allProductsArray.find((product) => product.id == id);
+        return product;
+    }
+
+    async addProduct(newProduct) {
+        let allProductsArray = await this.read(this.file);
+        let nextId = await this.getNextId(allProductsArray);
+        newProduct.id = nextId;
+        /**A todos los productos el backend le agrega status=true por default */
+        newProduct.status = true;
+        allProductsArray.push(newProduct);
+        await this.write(allProductsArray);
+        return newProduct;
+    }
+
+    async updateProduct(id, newProduct) {
+        let allProductsArray = await this.read(this.file);
+        console.log("productos", allProductsArray);
+        const productToUpdate = allProductsArray.find(
+        (product) => product.id == id
+        );
+        if (!productToUpdate) {
+        console.log("producto no encontrado", productToUpdate);
+        return {
+            status: "error",
+            message: "Sorry, no product found by id: " + id,
+            payload: {},
+        };
+        }
+        newProduct = this.updateProductFields(productToUpdate, newProduct);
+        const index = allProductsArray.indexOf(productToUpdate);
+        allProductsArray[index] = newProduct;
+        await this.write(allProductsArray);
+        return newProduct;
+    }
+
+    async deleteProduct(id) {
+        let allProductsArray = await this.read(this.file);
+        const productToDelete = allProductsArray.find(
+        (product) => product.id == id
+        );
+        if (!productToDelete) {
+        return {
+            status: "error",
+            message: "Sorry, no product found by id: " + id,
+            payload: {},
+        };
+        }
+        const index = allProductsArray.indexOf(productToDelete);
+        allProductsArray.splice(index, 1);
+        await this.write(allProductsArray);
+        return productToDelete;
+    }
+
+    updateProductFields(productToUpdate, newProduct) {
+        /** 🗨 Los campos que se repiten los actualiza,
+         * los que no (como el id o status) los deja igual */
+        const updatedProduct = {
+        ...productToUpdate,
+        ...newProduct,
+        };
+        return updatedProduct;
+    }
+
+    async read() {
+        let allProductsArray = [];
         try {
+        let allProductsString = await fs.promises.readFile(this.path, "utf-8");
+        allProductsString.length > 0
+            ? (allProductsArray = JSON.parse(allProductsString))
+            : (allProductsArray = []);
+        } catch (err) {
+        console.log("Error en la lectura del archivo", err);
+        }
+        return allProductsArray;
+    }
 
-            if (fs.existsSync(this.path)) {
-                const data = await fs.promises.readFile(this.path, 'utf-8');
-                return JSON.parse(data);
-            }
-
-            await fs.promises.writeFile(this.path, JSON,stringify([]));
-            return [];
-            
-        } catch (error) {
-            throw new Error(error.message);
+    async write(allProductsArray) {
+        let allProductsString = JSON.stringify(allProductsArray);
+        try {
+        await fs.promises.writeFile(this.path, allProductsString);
+        } catch (err) {
+        console.log("Error en la escritura", err);
         }
     }
 
-    async addProduct(product){
-
-        try {
-            
-            let data = await this.getProducts();
-            console.log(data);
-    
-            let checkCode = data.find((p) => p.code === product.code);
-            if (checkCode) {
-                return 'This code already exists';
-            }
-    
-            if (!product.title || !product.description || !product.price || !product.thumbnail || !product.code || !product.stock) {
-                return 'Fields missing';
-            }
-    
-            product.id = this.id;
-            // this.id;
-    
-            let newProduct = {...product, id: this.id}
-            this.id++;
-    
-            data.push(newProduct);
-            const productsString = JSON.stringify(data);
-            await fs.promises.writeFile(this.path, productsString);
-    
-            return 'Product added';
-
-        } catch (error) {
-            throw new Error(error.message);
+    async getNextId(allProductsArray) {
+        let lastId = 0;
+        // recorro allProductsArray y guardo todos los ids en un array nuevo. Luego busco el máximo
+        const allIdsArray = allProductsArray.map((product) => product.id);
+        // me quedo solo con los id numericos, elimino los NaN, null y undefined
+        allIdsArray.filter((id) => typeof id === "number");
+        if (allIdsArray.length > 0) {
+        lastId = Math.max(...allIdsArray);
         }
-
-
-    }
-
-
-    async updateProduct(id, updatedProduct) {
-
-        try {
-            
-            let data = await this.getProducts();
-            let index = data.findIndex((p) => p.id === id);
-            if (index === -1) {
-                return 'Product not found';
-            }
-    
-            if (updatedProduct.code) {
-                let checkCode = data.find((p) => p.code === updatedProduct.code && p.id !== id);
-                if (checkCode) {
-                    return 'This code already exists';
-                }
-            }
-    
-            let updated = { ...data[index], ...updatedProduct, id };
-            data[index] = updated;
-    
-            const productsString = JSON.stringify(data);
-            fs.writeFileSync(this.path, productsString);
-    
-            return 'Product updated';
-            
-        } catch (error) {
-            throw new Error(error.message);
-        }
-
-    }
-
-
-    async deleteProduct(id){
-
-        try {
-            
-            let data = await this.getProducts();
-            const index = data.findIndex((p) => p.id === id);
-            if (index === -1) {
-                return 'Product not found';
-            }
-    
-            data.splice(index, 1);
-            const productsString = JSON.stringify(data);
-            fs.writeFileSync(this.path, productsString);
-    
-            return 'Product deleted';
-
-        } catch (error) {
-            throw new Error(error.message);
-        }
-
-    }
-
-
-    // getProducts(){
-    //     return data;
-    // }
-
-
-    async getProductsById(id){
-
-        try {
-
-            let data = await this.getProducts();
-            let found = data.find((p) => p.id === id);
-            if (!found) {
-                return 'Product not found';
-            }
-    
-            return found;
-
-        } catch (error) {
-            throw new Error(error.message);
-        }
-
+        return lastId + 1;
     }
 }
-
-
-
-// const productManeger = new ProductManager('productos.json');
-
-
-const product = {
-    title: 'Nike Shoes',
-    description: 'shoes running',
-    price: '10',
-    thumbnail: 'https://worthly.com/wp-content/uploads/2014/11/139517568.jpg',
-    code: 'SHOES',
-    stock: '4'
-}
-const product2 = {
-    title: 'Adidas Shoes',
-    description: 'shoes running',
-    price: '10',
-    thumbnail: 'https://worthly.com/wp-content/uploads/2014/11/139517568.jpg',
-    code: 'SHOES124',
-    stock: '2'
-}
-const product3 = {
-    title: 'Adidas ',
-    description: 'shoes running',
-    price: '0',
-    thumbnail: 'https://worthly.com/wp-content/uploads/2014/11/139517568.jpg',
-    code: 'SHOES001',
-    stock: '1'
-}
-
-// const asyncFn = async () =>{
-//     console.log(await productManeger.addProduct(product));
-// }
-
-// asyncFn();
-
-
-
-// console.log(productManeger.addProduct(product));
-// console.log(productManeger.addProduct(product2));
-// console.log(productManeger.addProduct(product3));
-
-// console.log(productManeger.updateProduct(1, product));
-// console.log(productManeger.updateProduct(2, product2));
-// // console.log(productManeger.deleteProduct(2));
-
-// console.log(productManeger.getProducts()); 
-// console.log(productManeger.getProductsById(1));
-
-
-// module.exports = ProductManager;
 
 export default ProductManager;
+
