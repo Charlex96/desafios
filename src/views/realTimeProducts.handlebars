@@ -31,6 +31,9 @@
                     style="width: 50px; min-height: 100%; max-height: 50px;"
                     /></td>
                 </tr>
+                <td>
+                    <button class="btn btn-danger btn-sm delete-button" onclick="deleteProduct('{{this.id}}')">Eliminar</button>
+                </td> <!-- Agregamos el botón de eliminación -->
 
             {{/each}}
             </tbody>

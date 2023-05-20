@@ -22,7 +22,20 @@ const renderProducts = (productList) => {
             const template = Handlebars.compile(serverTemplate);
             const html = template({ productList });
             document.getElementById("productList").innerHTML = html;
+
+        })
+
+        .then(() => {
+            // Agregar evento de eliminación a cada botón
+            const deleteButtons = document.querySelectorAll(".delete-button");
+            deleteButtons.forEach((button) => {
+                button.addEventListener("click", (event) => {
+                    const productId = event.target.dataset.productId;
+                    deleteProduct(productId);
+                });
+            });
         });
+        
 };
 
 formProducts.addEventListener("submit", (e) => {
@@ -39,3 +52,7 @@ formProducts.addEventListener("submit", (e) => {
     socket.emit("createProduct", newProduct);
 });
 
+function deleteProduct(productId) {
+    // Lógica para eliminar el producto
+    socket.emit("deleteProduct", productId);
+}
