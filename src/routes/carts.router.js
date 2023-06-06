@@ -1,6 +1,6 @@
 
 import express from 'express';
-import CartManager from '../cartManager.js';
+import CartManager from '../DAO/cartManager.js';
 
 const path = "./src/db/carts.json";
 const myCartsManager = new CartManager(path);

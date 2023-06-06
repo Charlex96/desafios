@@ -1,6 +1,8 @@
 
 import express from 'express';
-import ProductManager from './../productManager.js';
+import { ProductsModel } from '../DAO/models/products.model.js';
+import { ProductsService } from '../services/products.service.js';
+import ProductManager from './../DAO/productManager.js';
 import validationFunctions from './../middleware/validators.js';
 import validateNumber from './../utils/helpers.js';
 
@@ -11,15 +13,20 @@ export const productsRouter = express.Router();
 // Para acceder a las funciones individuales, se debe hacer lo siguiente:
 const { validateRequest, validateNumberParams, validateCodeNotRepeated } = validationFunctions;
 
+const Service = new ProductsService();
+
 
 productsRouter.get('/', async (req, res) =>{
+    
 
     try {
         
         const limit = req.query.limit;
-        const products = await productManager.getProducts();
+        // const products = await productManager.getProducts();
+        const products = await Service.getAll();
+        console.log({products});
         const isValidLimit = validateNumber(limit);
-        
+
         products
         ? isValidLimit
             ? res.status(200).json({

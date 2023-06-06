@@ -1,5 +1,6 @@
 // const fs = require('fs');
 import fs from 'fs';
+// import { UserModel } from './models/products.model';
 
 class ProductManager {
     constructor(path) {
