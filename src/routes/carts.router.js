@@ -1,16 +1,21 @@
 
 import express from 'express';
-import CartManager from '../DAO/cartManager.js';
+// import CartManager from '../DAO/cartManager.js';
+import { CartsService } from '../services/carts.service.js';
+import { CartsModel } from '../DAO/models/carts.model.js';
 
-const path = "./src/db/carts.json";
-const myCartsManager = new CartManager(path);
+// const path = "./src/db/carts.json";
+// const myCartsManager = new CartManager(path);
 export const cartsRouter = express.Router();
+
+const Service = new CartsService();
 
 cartsRouter.post("/", async (req, res) => {
   /**Crea un carrito vacío de productos */
     try {
-        const newCart = req.body;
-        const cartCreated = await myCartsManager.addCart(newCart);
+        // const newCart = req.body;
+        // const cartCreated = await myCartsManager.addCart(newCart);
+        const cartCreated = await Service.createOne();
         cartCreated
         ? res.status(201).json({
             status: "success",
@@ -30,18 +35,13 @@ cartsRouter.post("/", async (req, res) => {
 cartsRouter.get("/", async (req, res) => {
   /**Devuelve todos los carritos */
     try {
-        const allCarts = await myCartsManager.read();
-        allCarts
-        ? res.status(200).json({
-            status: "success",
-            payload: allCarts,
-            })
-        : res.status(200).json({
-            status: "success",
-            payload: [],
-            });
+        const allCarts = await CartsModel.find();
+        res.status(200).json({
+        status: "success",
+        payload: allCarts,
+        });
     } catch (err) {
-        res.status(err.status || 500).json({
+        res.status(500).json({
         status: "error",
         payload: err.message,
         });
@@ -52,22 +52,16 @@ cartsRouter.get("/:idCart/products", async (req, res) => {
   /**Devuelve los productos de un carrito por id */
     try {
         const idCart = req.params.idCart;
-        const allCarts = await myCartsManager.read();
-        const cart = allCarts.find((cart) => cart.id == idCart);
-        cart
-        ? res.status(200).json({
-            status: "success",
-            payload: cart.products,
-            })
-        : res.status(404).json({
-            status: "error",
-            message: "Sorry, no cart found by id: " + idCart,
-            payload: {},
-            });
+        const cart = await service.get(idCart);
+        res.status(200).json({
+        status: "success",
+        payload: cart.products,
+        });
     } catch (err) {
-        res.status(err.status || 500).json({
+        res.status(404).json({
         status: "error",
-        payload: err.message,
+        message: "Sorry, no cart found by id: " + req.params.idCart,
+        payload: {},
         });
     }
 });
@@ -77,24 +71,18 @@ cartsRouter.put("/:idCart/products/:idProduct", async (req, res) => {
     try {
         const idCart = req.params.idCart;
         const idProduct = req.params.idProduct;
-        const cartUpdated = await myCartsManager.addProductToCart(
-        idCart,
-        idProduct
-        );
-        cartUpdated
-        ? res.status(200).json({
-            status: "success",
-            payload: cartUpdated,
-            })
-        : res.status(404).json({
-            status: "error",
-            message: "Sorry, could not add product to cart",
-            payload: {},
-            });
+        const cart = await service.get(idCart);
+        cart.products.push(idProduct);
+        await cart.save();
+        res.status(200).json({
+        status: "success",
+        payload: cart,
+        });
     } catch (err) {
-        res.status(err.status || 500).json({
+        res.status(404).json({
         status: "error",
-        payload: err.message,
+        message: "Sorry, could not add product to cart",
+        payload: {},
         });
     }
 });
