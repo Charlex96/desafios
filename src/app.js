@@ -6,7 +6,7 @@ import productsRouter from './routes/products.router.js';
 import cartsRouter from './routes/carts.router.js';
 import realtimeproductsRouter from './routes/realTimeProduct.router.js';
 import homeScreenRouter from './routes/homeScreen.router.js';
-import {testSocketChatRouter} from "./routes/test.socket.chat.router.js";
+import {messageRouter} from "./routes/message.router.js";
 
 //----------------__DIRNAME------------------------------
 import path from "path";
@@ -50,7 +50,7 @@ app.use('/', homeScreenRouter);
 app.use('/realtimeproducts', realtimeproductsRouter);
 
 //Rutas: SOCKETS
-app.use("/test-chat", testSocketChatRouter);
+app.use("/message", messageRouter);
 
 // HANDLERS SOCKET
 socketServer.on("connection", (socket) => {

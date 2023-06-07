@@ -6,4 +6,4 @@ const schema = new Schema({
   message: { type: String, required: true, max: 100 },
 });
 
-export const MsgModel = model('messages', schema);
+export const MessagesModel = model('messages', schema);
