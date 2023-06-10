@@ -52,7 +52,7 @@ cartsRouter.get("/:idCart/products", async (req, res) => {
   /**Devuelve los productos de un carrito por id */
     try {
         const idCart = req.params.idCart;
-        const cart = await service.get(idCart);
+        const cart = await Service.get(idCart);
         res.status(200).json({
         status: "success",
         payload: cart.products,
@@ -71,8 +71,8 @@ cartsRouter.put("/:idCart/products/:idProduct", async (req, res) => {
     try {
         const idCart = req.params.idCart;
         const idProduct = req.params.idProduct;
-        const cart = await service.get(idCart);
-        cart.products.push(idProduct);
+        const cart = await Service.get(idCart);
+        cart.items.push({ productId: idProduct, quantity: 1 });
         await cart.save();
         res.status(200).json({
         status: "success",

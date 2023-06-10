@@ -46,11 +46,10 @@ app.set("views", path.join(__dirname, "views"));
 // Routes
 app.use('/api/products', productsRouter);
 app.use('/api/carts', cartsRouter);
+app.use("/api/message", messageRouter);
 app.use('/', homeScreenRouter);
 app.use('/realtimeproducts', realtimeproductsRouter);
 
-//Rutas: SOCKETS
-app.use("/message", messageRouter);
 
 // HANDLERS SOCKET
 socketServer.on("connection", (socket) => {

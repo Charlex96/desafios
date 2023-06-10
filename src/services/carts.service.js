@@ -8,7 +8,7 @@ export class CartsService{
     }
 
     async get(cartId){
-        const cart = await CartsModel.findById(cardId).populate('products.product');
+        const cart = await CartsModel.findById(cartId).populate('products.product');
         if(!cart){
             throw new Error('Cart not found');
         }

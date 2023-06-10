@@ -1,7 +1,7 @@
 
 import express from 'express';
 import { ProductsModel } from '../DAO/models/products.model.js';
-import { ProductsService } from '../services/products.service.js';
+// import { ProductsService } from '../services/products.service.js';
 import ProductManager from './../DAO/productManager.js';
 import validationFunctions from './../middleware/validators.js';
 import validateNumber from './../utils/helpers.js';
@@ -13,7 +13,7 @@ export const productsRouter = express.Router();
 // Para acceder a las funciones individuales, se debe hacer lo siguiente:
 const { validateRequest, validateNumberParams, validateCodeNotRepeated } = validationFunctions;
 
-const productService = new ProductsService();
+// const productService = new ProductsService();
 
 
 productsRouter.get('/', async (req, res) =>{
@@ -48,7 +48,7 @@ productsRouter.get('/:id', validateNumberParams, async (req, res)=>{
 
     try {
         const id = req.params.id;
-        const product = await ProductsModel.findById(id);
+        const product = await ProductsModel.findById(id).populate('items.productId');
 
         product
             ? res.status(200).json({
