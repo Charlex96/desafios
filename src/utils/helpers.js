@@ -1,6 +1,5 @@
-
-const validateNumber = (number) =>{
-    return number && ! isNaN(number) && number > 0;
+const validateNumber = (number) => {
+    return number && !isNaN(number) && number > 0;
 };
 
-export default validateNumber;
+export { validateNumber };

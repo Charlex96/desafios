@@ -1,6 +1,4 @@
-// const fs = require('fs');
-import fs from 'fs';
-// import { UserModel } from './models/products.model';
+import fs from "fs";
 
 class ProductManager {
     constructor(path) {
@@ -113,4 +111,3 @@ class ProductManager {
 }
 
 export default ProductManager;
-
