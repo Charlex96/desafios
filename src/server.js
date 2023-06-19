@@ -1,5 +1,7 @@
 import express from "express";
 import morgan from "morgan";
+import MongoStore from 'connect-mongo';
+import session from 'express-session';
 import { Server as SocketServer } from "socket.io";
 import http from "http";
 import homeFsRoutes from "./routes/fs/homeFsRoutes.js";
@@ -14,15 +16,21 @@ import exphbs from "express-handlebars";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { connectMongoDB } from "./config/configMongoDB.js";
+import { authRouter } from './routes/mongo/auth.router.js';
+import { iniPassport } from './config/passport.config.js';
+import passport from 'passport';
 
-/** ★━━━━━━━━━━━★ variables ★━━━━━━━━━━━★ */
+
+
+/** --------------- variables --------------- */
 
 const app = express();
 const PORT = 8080 || process.env.PORT;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 console.log(__dirname);
-/** ★━━━━━━━━━━━★ server httt & websocket ★━━━━━━━━━━━★ */
+
+/** --------------- server httt & websocket --------------- */
 
 /** Tenemos dos servidores:  httpServer (http) y io (websocket)*/
 const httpServer = http.createServer(app);
@@ -32,29 +40,50 @@ const io = new SocketServer(httpServer);
 
 websockets(io);
 
-/** ★━━━━━━━━━━━★ middlewares ★━━━━━━━━━━━★*/
+/** --------------- middlewares ---------------*/
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
 
-/** ★━━━━━━━━━━━★ frontend ★━━━━━━━━━━━★*/
+app.use(
+    session({
+        store: MongoStore.create({ mongoUrl: 'mongodb+srv://fimacharles:1zYle3sCAgmWEHVt@dbcoder.bpexbss.mongodb.net/ecommerce?retryWrites=true&w=majority', ttl: 7200 }),
+        secret: 'un-re-secreto',
+        resave: true,
+        saveUninitialized: true,
+    })
+);
+
+/** --------------- frontend ---------------*/
 app.engine("handlebars", exphbs.engine());
 app.set("views", __dirname + "/views");
 app.set("view engine", "handlebars");
 
-/** ★━━━━━━━━━━━★ routes ★━━━━━━━━━━━★ */
-// con FileSystem
+/** --------------- passport --------------- */
+iniPassport();
+app.use(passport.initialize());
+app.use(passport.session());
+
+/** --------------- routes --------------- */
+
+// con FileSystem screen
 app.use("/fs/home", homeFsRoutes);
+// con FileSystem API
 app.use("/fs/products", productFsRoutes);
 app.use("/fs/carts", cartFsRoutes);
-// con MongoDB
+
+// con MongoDB screen
 app.use("/home", homeRoutes);
+app.use("/chat", chatRoutes);
+app.use('/auth', authRouter);
+
+// con MongoDB API
 app.use("/products", productRoutes);
 app.use("/carts", cartRoutes);
-app.use("/chat", chatRoutes);
 
-/** ★━━━━━━━━━━━★ connection mongoDB ★━━━━━━━━━━━★ */
+
+/** --------------- connection mongoDB --------------- */
 connectMongoDB();
 
 const server = httpServer.listen(PORT, () =>
@@ -64,3 +93,9 @@ const server = httpServer.listen(PORT, () =>
     )
 );
 server.on("error", (err) => console.log(err));
+
+
+//----------------bcrypt------------------------------
+import bcrypt from 'bcrypt';
+export const createHash = (password) => bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+export const isValidPassword = (password, hashPassword) => bcrypt.compareSync(password, hashPassword);

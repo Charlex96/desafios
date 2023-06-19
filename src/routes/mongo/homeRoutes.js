@@ -7,20 +7,7 @@ import { validateNumber } from "../../utils/helpers.js";
 
 router.get("/", async (req, res) => {
   try {
-    const products = await myProductManager.getProducts();
-    const limit = req.query.limit;
-    const isValidLimit = validateNumber(limit);
-    products
-      ? isValidLimit
-        ? res.render("home", {
-            products: products.slice(0, limit),
-          })
-        : res.render("home", {
-            products: products,
-          })
-      : res.render("home", {
-          products: [],
-        });
+    res.render("home");
   } catch (err) {
     res.status(err.status || 500).json({
       status: "error",

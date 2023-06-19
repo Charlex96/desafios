@@ -24,19 +24,19 @@ const db = new MongoDBProducts();
 /**Rutas */
 router.get("/", async (req, res) => {
   try {
-    const products = await db.getAll();
-    const limit = req.query.limit;
-    const isValidLimit = validateNumber(limit);
+    /**Deberá poder recibir por query params
+     * un limit (opcional), una page (opcional),
+     *  un sort (opcional)
+     * y un query (opcional)
+     */
+    const { limit, page, sort, query } = req.query;
+    console.log(limit, page, sort, query);
+    const products = await db.getAll(limit, page, sort, query);
     products
-      ? isValidLimit
-        ? res.status(200).json({
-            status: "success",
-            payload: products.slice(0, limit),
-          })
-        : res.status(200).json({
-            status: "success",
-            payload: products,
-          })
+      ? res.status(200).json({
+          status: "success",
+          payload: products,
+        })
       : res.status(200).json({ status: "success", payload: [] });
   } catch (err) {
     res.status(err.status || 500).json({
@@ -72,7 +72,8 @@ router.post("/", validateRequest, async (req, res) => {
   try {
     const newProduct = req.body;
     // validate code not repeated
-    const allProducts = await db.getAll();
+    const response = await db.getAll();
+    const allProducts = response.docs;
     const product = allProducts.find(
       (product) => product.code == newProduct.code
     );

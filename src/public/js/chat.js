@@ -27,19 +27,19 @@ socket.on("refresh-messages", (messages) => {
   messageContainer.innerHTML = messages
     .map((message) => {
       return `<div
-        class="notification is-primary is-light"
-        style=" text-align: justify; margin-rigth:35px;     padding: 15px;
-        border-radius: 20px;">
-            <div>
-            <p>${message.message}</p>
-            </div>
-            <div
-            style="text-align: end; font-style: italic; font-weight: 400"
-            class="has-text-dark"
-            >
-            ${message.username}
-            </div>
-        </div>`;
+       class="notification is-primary is-light"
+       style=" text-align: justify; margin-rigth:35px;     padding: 15px;
+       border-radius: 20px;">
+           <div>
+           <p>${message.message}</p>
+           </div>
+           <div
+           style="text-align: end; font-style: italic; font-weight: 400"
+           class="has-text-dark"
+           >
+           ${message.username}
+           </div>
+       </div>`;
     })
     .join("");
 });
